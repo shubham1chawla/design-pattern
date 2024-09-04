@@ -222,3 +222,175 @@ class Database {
   }
 }
 ```
+## Structural Patterns
+
+These patterns explain how to assemble objects and classes into larger structures while keeping these structures flexible and efficient.
+
+### Adapter (Wrapper)
+
+An adapter is a structural design pattern that allows objects with incompatible interfaces to collaborate.
+
+Let's consider the following example of holes and pegs.
+
+```python
+class RoundPeg:
+  def __init__(self, radius: float):
+    self.radius = radius
+
+class RoundHole:
+  def __init__(self, radius: float):
+    self.radius = radius
+
+  def fits(peg: RoundPeg) -> bool:
+    return self.radius >= peg.radius
+```
+
+In this example, `RoundPeg` is compatible with `RoundHole`. But what happens if we have a `SquarePeg` and want to make it compatible with `RoundHole`?
+
+```python
+class SquarePeg:
+  def __init__(self, width: float):
+    self.width = width
+```
+
+Since `SquarePeg` has no overlap with `RoundPeg`, we can't use `RoundHole` with `SquarePeg`. We can implement the following to make them compatible.
+
+```python
+class SquarePegAdapter(RoundPeg): # <-- Adapters extend the type we wish to mimic
+  def __init__(self, peg: SquarePeg):
+    self.peg = peg
+
+  @property
+  def width(self):
+    return self.peg.width * sqrt(2) / 2 # <-- Calculation to find the radius from width
+```
+
+Since we extend `RoundPeg`, we can pass it to the `RoundHole`'s `fits` method without issues.
+
+### Bridge
+
+A bridge is a structural design pattern that lets you split a large class or a set of closely related classes into two separate hierarchies: abstraction and implementation.
+
+Let's understand this method using the following example.
+
+```python
+from abc import ABC, abstractmethod
+
+class Device(ABC):
+  def __init__(self):
+    self.on = False
+
+  @abstractmethod
+  def toggle_power(self):
+    pass
+
+class Remote:
+  def __init__(self, device: Device):
+    self.device = device
+
+  def turn_on(self):
+    # Logic
+
+  def turn_off(self):
+    # Logic
+```
+
+In this example, the `Device` is an abstract class, and concrete classes implement these functionalities differently. On the other hand, the `Remote` class "has" a device to work with and is not concerned with "how" concrete classes implement said functionalities.
+
+### Composite (Object Tree)
+
+Composite is a structural design pattern that lets you compose objects into tree structures and then work with these structures as if they were individual objects.
+
+Consider the following graphical elements with `move` and `draw` functionalities.
+
+```ts
+interface Graphic {
+  move: (x: int, y: int) => void;
+  draw: () => void;
+}
+
+class Dot implements Graphic {
+  // Logic to move and draw a dot
+}
+
+class Circle extends Dot {
+  // Logic to move and draw a circle
+}
+```
+
+An image can have multiple graphical elements, which we can represent as follows.
+
+```ts
+class CompoundGraphic implements Graphic {
+  children: Graphic[]
+
+  move(x: int, y: int): void {
+    for (const graphic of this.children) {
+      graphic.move(x, y); // <-- Note that we delegate tasks to children nodes
+    }
+  }
+
+  // Logic to add graphics
+}
+```
+
+In a composite pattern, we delegate tasks to the leaf nodes, which perform the business logic independently.
+
+### Decorator (Wrapper)
+
+A decorator is a structural design pattern that lets you attach new behaviors to objects by placing these objects inside particular wrapper objects that contain the behaviors.
+
+> [!NOTE]
+> You can consider `SquarePegAdapter` to be a "decorator" in the Adaptor example.
+
+### Facade
+
+A facade is a structural design pattern that provides a simplified interface to a library, a framework, or any other complex set of classes.
+
+> [!NOTE]
+> Essentially, any complex library or service you use, for instance, node packages or Rest APIs, hides away complex functionalities and exposes APIs you consume.
+
+### Flyweight (Cache)
+
+Flyweight is a structural design pattern that lets you fit more objects into the available amount of RAM by sharing common parts of the state between multiple objects instead of keeping all the data in each object.
+
+> [!NOTE]
+> Read more about it [here](https://refactoring.guru/design-patterns/flyweight).
+
+### Proxy
+
+Proxy is a structural design pattern that lets you provide a substitute or placeholder for another object. A proxy controls access to the original object, allowing you to perform something before or after the request gets through to the original object.
+
+> [!TIP]
+> Spring AOP uses the proxy pattern to perform actions before, after, or around the target method.
+
+Let's consider the following example of a YouTube API library.
+
+```ts
+interface IYouTubeAPIService {
+  list: () => string[];
+}
+
+class YouTubeAPIService implements IYouTubeAPIService {
+  list(): string[] {
+    // Returns the list of videos
+  }
+}
+
+class YouTubeAPICacheProxy implements IYouTubeAPIService {
+  cachedVideos: string[]
+
+  constructor(service: YouTubeAPIService) {
+    this.service = service
+  }
+
+  list(): string[] {
+    if (!this.cachedVideos) {
+      this.cachedVideos = this.service.list();
+    }
+    return this.cachedVideos;
+  }
+}
+```
+
+Notice that the proxy class intercepts operations and performs its logic.
