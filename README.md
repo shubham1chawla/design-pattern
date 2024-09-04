@@ -261,7 +261,7 @@ class SquarePegAdapter(RoundPeg): # <-- Adapters extend the type we wish to mimi
     self.peg = peg
 
   @property
-  def width(self):
+  def radius(self):
     return self.peg.width * sqrt(2) / 2 # <-- Calculation to find the radius from width
 ```
 
